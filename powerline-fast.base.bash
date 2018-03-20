@@ -37,7 +37,7 @@ function __powerline_user_info_prompt {
       fi
       ;;
   esac
-  [[ -n "${user_info}" ]] && echo "\033[${USER_INFO_THEME_PROMPT_TEXT_COLOR}m${user_info}${reset_color}|${color}"
+  [[ -n "${user_info}" ]] && echo "$(set_color ${USER_INFO_THEME_PROMPT_TEXT_COLOR} -)${user_info}$(set_color - ${color})|${color}"
 }
 
 function __powerline_ruby_prompt {
@@ -128,20 +128,20 @@ function __powerline_scm_prompt {
   scm
   scm_prompt_char
   SCM_BRANCH=$(__fast_parse_git_branch)
-  
+
   # The slow part:
   #__fast_parse_git_prompt_vars
   
   if [[ "${SCM_NONE_CHAR}" != "${SCM_CHAR}" ]]; then
-    if [[ "${SCM_DIRTY}" -eq 3 ]]; then
-      color=${SCM_THEME_PROMPT_STAGED_COLOR}
-    elif [[ "${SCM_DIRTY}" -eq 2 ]]; then
-      color=${SCM_THEME_PROMPT_UNSTAGED_COLOR}
-    elif [[ "${SCM_DIRTY}" -eq 1 ]]; then
-      color=${SCM_THEME_PROMPT_DIRTY_COLOR}
-    else
-      color=${SCM_THEME_PROMPT_CLEAN_COLOR}
-    fi
+    # if [[ "${SCM_DIRTY}" -eq 3 ]]; then
+    #   color=${SCM_THEME_PROMPT_STAGED_COLOR}
+    # elif [[ "${SCM_DIRTY}" -eq 2 ]]; then
+    #   color=${SCM_THEME_PROMPT_UNSTAGED_COLOR}
+    # elif [[ "${SCM_DIRTY}" -eq 1 ]]; then
+    #   color=${SCM_THEME_PROMPT_DIRTY_COLOR}
+    # else
+    #   color=${SCM_THEME_PROMPT_CLEAN_COLOR}
+    # fi    
     color=${SCM_THEME_PROMPT_CLEAN_COLOR}
     if [[ "${SCM_GIT_CHAR}" == "${SCM_CHAR}" ]]; then
       scm_prompt+="${SCM_CHAR}${SCM_BRANCH}${SCM_STATE}"
