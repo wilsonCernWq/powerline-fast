@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+. "$BASH_IT/custom/themes/powerline-fast/powerline-fast.fast.bash"
 . "$BASH_IT/custom/themes/powerline-fast/powerline-fast.base.bash"
 
 PROMPT_CHAR=${POWERLINE_PROMPT_CHAR:=""}

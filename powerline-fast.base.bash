@@ -66,83 +66,28 @@ function __powerline_python_venv_prompt {
   [[ -n "${python_venv}" ]] && echo "${PYTHON_VENV_CHAR}${python_venv}|${PYTHON_VENV_THEME_PROMPT_COLOR}"
 }
 
-function __fast_parse_git_branch {
-    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/*\(.*\)/\1/'
-}
-
-function __fast_parse_git_dirty {
-  [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]] && echo "*"
-}
-
-function __fast_parse_git_prompt_vars {
-  if _git-branch &> /dev/null; then
-    SCM_GIT_DETACHED="false"
-    SCM_BRANCH="${SCM_THEME_BRANCH_PREFIX}\$(_git-friendly-ref)$(_git-remote-info)"
-  else
-    SCM_GIT_DETACHED="true"
-
-    local detached_prefix
-    if _git-tag &> /dev/null; then
-      detached_prefix=${SCM_THEME_TAG_PREFIX}
-    else
-      detached_prefix=${SCM_THEME_DETACHED_PREFIX}
-    fi
-    SCM_BRANCH="${detached_prefix}\$(_git-friendly-ref)"
-  fi
-
-  IFS=$'\t' read -r commits_behind commits_ahead <<< "$(_git-upstream-behind-ahead)"
-  [[ "${commits_ahead}" -gt 0 ]] && SCM_BRANCH+=" ${SCM_GIT_AHEAD_CHAR}${commits_ahead}"
-  [[ "${commits_behind}" -gt 0 ]] && SCM_BRANCH+=" ${SCM_GIT_BEHIND_CHAR}${commits_behind}"
-
-  local stash_count
-  stash_count="$(git stash list 2> /dev/null | wc -l | tr -d ' ')"
-  [[ "${stash_count}" -gt 0 ]] && SCM_BRANCH+=" ${SCM_GIT_STASH_CHAR_PREFIX}${stash_count}${SCM_GIT_STASH_CHAR_SUFFIX}"
-
-  SCM_STATE=${GIT_THEME_PROMPT_CLEAN:-$SCM_THEME_PROMPT_CLEAN}
-  if ! _git-hide-status; then
-    IFS=$'\t' read -r untracked_count unstaged_count staged_count <<< "$(_git-status-counts)"
-    if [[ "${untracked_count}" -gt 0 || "${unstaged_count}" -gt 0 || "${staged_count}" -gt 0 ]]; then
-      SCM_DIRTY=1
-      if [[ "${SCM_GIT_SHOW_DETAILS}" = "true" ]]; then
-        [[ "${staged_count}" -gt 0 ]] && SCM_BRANCH+=" ${SCM_GIT_STAGED_CHAR}${staged_count}" && SCM_DIRTY=3
-        [[ "${unstaged_count}" -gt 0 ]] && SCM_BRANCH+=" ${SCM_GIT_UNSTAGED_CHAR}${unstaged_count}" && SCM_DIRTY=2
-        [[ "${untracked_count}" -gt 0 ]] && SCM_BRANCH+=" ${SCM_GIT_UNTRACKED_CHAR}${untracked_count}" && SCM_DIRTY=1
-      fi
-      SCM_STATE=${GIT_THEME_PROMPT_DIRTY:-$SCM_THEME_PROMPT_DIRTY}
-    fi
-  fi
-
-  [[ "${SCM_GIT_SHOW_CURRENT_USER}" == "true" ]] && SCM_BRANCH+="$(git_user_info)"
-
-  SCM_PREFIX=${GIT_THEME_PROMPT_PREFIX:-$SCM_THEME_PROMPT_PREFIX}
-  SCM_SUFFIX=${GIT_THEME_PROMPT_SUFFIX:-$SCM_THEME_PROMPT_SUFFIX}
-
-  SCM_CHANGE=$(_git-short-sha 2>/dev/null || echo "")
-}
-
-
 function __powerline_scm_prompt {
   local color=""
   local scm_prompt=""
 
-  scm
-  scm_prompt_char
-  SCM_BRANCH=$(__fast_parse_git_branch)
+  # -- original version
+  # scm_prompt_vars
 
-  # The slow part:
-  #__fast_parse_git_prompt_vars
-  
+  # -- if we break this command into pieces
+  #    and try to optimize
+  scm_promot_vars_fast
+
   if [[ "${SCM_NONE_CHAR}" != "${SCM_CHAR}" ]]; then
-    # if [[ "${SCM_DIRTY}" -eq 3 ]]; then
-    #   color=${SCM_THEME_PROMPT_STAGED_COLOR}
-    # elif [[ "${SCM_DIRTY}" -eq 2 ]]; then
-    #   color=${SCM_THEME_PROMPT_UNSTAGED_COLOR}
-    # elif [[ "${SCM_DIRTY}" -eq 1 ]]; then
-    #   color=${SCM_THEME_PROMPT_DIRTY_COLOR}
-    # else
-    #   color=${SCM_THEME_PROMPT_CLEAN_COLOR}
-    # fi    
     color=${SCM_THEME_PROMPT_CLEAN_COLOR}
+    if [[ "${SCM_DIRTY}" -eq 3 ]]; then
+      color=${SCM_THEME_PROMPT_STAGED_COLOR}
+    elif [[ "${SCM_DIRTY}" -eq 2 ]]; then
+      color=${SCM_THEME_PROMPT_UNSTAGED_COLOR}
+    elif [[ "${SCM_DIRTY}" -eq 1 ]]; then
+      color=${SCM_THEME_PROMPT_DIRTY_COLOR}
+    else
+      color=${SCM_THEME_PROMPT_CLEAN_COLOR}
+    fi    
     if [[ "${SCM_GIT_CHAR}" == "${SCM_CHAR}" ]]; then
       scm_prompt+="${SCM_CHAR}${SCM_BRANCH}${SCM_STATE}"
     elif [[ "${SCM_P4_CHAR}" == "${SCM_CHAR}" ]]; then
@@ -243,4 +188,3 @@ function __powerline_prompt_command {
         LEFT_PROMPT \
         SEGMENTS_AT_LEFT
 }
-
